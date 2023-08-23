@@ -7,7 +7,12 @@ const Section = styled.section`
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	margin-top: 1rem;
+	padding: 1rem;
+`;
+
+const TableWrapper = styled.div`
+	height: 65vh;
+	overflow-x: scroll;
 `;
 
 const Table = styled.table`
@@ -38,8 +43,9 @@ const Theader = styled.th`
 `;
 
 const Tcell = styled.td`
-	padding: 1.5rem 3rem;
+	padding: ${props => props.$collapse ? '0.75rem 3rem' : '1.5rem 3rem'};
 	color: ${props => props.$active ? colors[props.$active] : 'inherit'};
+	font-weight: ${props => props.$collapse ? '600' : 'inherit'};
 
 	&:not(:nth-child(1)) {
 		background-color: ${colors.white};
@@ -126,6 +132,7 @@ const LegendsItem = styled.li`
 
 export {
 	Section,
+	TableWrapper,
 	Table, 
 	Trow, 
 	Theader, 

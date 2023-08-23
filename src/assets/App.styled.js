@@ -55,6 +55,59 @@ const PasteButton = styled(Button)`
 	padding: ${props => props.$active ? '1rem' : '1.5rem'};
 `;
 
+const Label = styled.label`
+	display: flex;
+	gap: 1rem;
+	display: flex;
+	justify-content: center;
+	margin-top: 1rem;
+	color: ${colors.darkGray};
+`;
+
+const LabelText = styled.span`
+	text-transform: capitalize;
+`;
+
+const CheckboxContainer = styled.div`
+	position: relative;
+`;
+
+const HiddenCheckbox = styled.input.attrs({ type: 'checkbox' })`
+  border: 0;
+  clip: rect(0 0 0 0);
+  clippath: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+`;
+
+const Icon = styled.svg`
+  fill: none;
+  stroke: white;
+  stroke-width: 2px;
+`;
+
+const StyledCheckbox = styled.div`
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: ${props => props.checked ? colors.primary : colors.darkGray };
+  border-radius: 0;
+  transition: all 150ms;
+
+  ${HiddenCheckbox}:focus + & {
+    box-shadow: 0 0 0 3px ${colors.primary};
+  }
+
+  ${Icon} {
+    visibility: ${props => props.checked ? 'visible' : 'hidden'};
+  }
+`;
+
 const PasteBoxArea = styled.div`
 	position: relative;
 `;
@@ -96,6 +149,12 @@ export {
 	Upload,
 	Text,
 	PasteButton,
+	Label,
+  LabelText,
+	CheckboxContainer,
+	HiddenCheckbox,
+	StyledCheckbox,
+	Icon,
 	PasteBoxArea,
 	PasteBox,
 	PasteConfirmButton

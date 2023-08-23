@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import { Section, Table, Trow, Theader, Tcell, Loader, Legends, LegendsItem } from '../assets/Comparison.styled';
+import { Section, TableWrapper, Table, Trow, Theader, Tcell, Loader, Legends, LegendsItem } from '../assets/Comparison.styled';
 
 function Comparison() {
   const location = useLocation();
-  const [pkgData, setPkgData] = useState(JSON.parse(location.state));
+  const [pkgData, setPkgData] = useState(JSON.parse(location.state.fileData));
+  const [trackerStatus, setTrackerStatus] = useState(JSON.parse(location.state.trackerStatus));
   const [loadStatus, setLoadStatus] = useState(false);
   const [comparisonData, setComparisonData] = useState(null);
+  const [comparisonDataD, setComparisonDataD] = useState(null);
 
   const versionComparison = (curr, latest) => {
   	let color = null;
@@ -56,6 +58,35 @@ function Comparison() {
 		  	}
 		  }))
   	}
+
+  	if (trackerStatus) {
+  		for (let item in pkgData.devDependencies) {	
+	  		const endpoint = `https://registry.npmjs.org/${item}`;
+			  const res = await fetch(endpoint);
+			  const data = await res.json();
+			  const versions = data.versions;
+			  const versionsData = Object.values(versions);
+			  let latestVersion = versionsData.pop();
+
+			  if (latestVersion.version.includes('-')) {
+			  	for (let i = versionsData.length - 1; i > 0; i--) {
+			  		if (!versionsData[i].version.includes('-')) {
+			  			latestVersion = versionsData[i];
+			  			break;
+			  		}
+			  	}
+			  }
+
+			  setComparisonDataD(prevData => ({
+			  	...prevData,
+			  	[latestVersion.name]: {
+			  		...prevData[latestVersion.name],
+			  		pkgNewVer: latestVersion.version,
+			  		pkgDependencies: latestVersion.dependencies
+			  	}
+			  }))
+	  	}
+  	}
   }
 
   const loadExistingData = () => {
@@ -71,6 +102,21 @@ function Comparison() {
   	  }
     }
     setComparisonData(mappedData);
+
+    if (trackerStatus) {
+    	mappedData = {};
+    	for (let item in pkgData.devDependencies) {
+	  	  mappedData = {
+	  	  	...mappedData,
+	  	  	[item]: {
+	  	  		pkgCurrVer: pkgData.devDependencies[item],
+	  	  		pkgNewVer: null,
+	  	  		pkgDependencies: null
+	  	  	} 
+	  	  }
+	    }
+	    setComparisonDataD(mappedData);
+    }
     setLoadStatus(true);
   }
 
@@ -84,38 +130,74 @@ function Comparison() {
 
   return (
   	<Section>
-  	  <Table>
-  	  	<thead>	
-  	  		<Trow>
-		  			<Theader>Package Name</Theader>
-		  			<Theader>Current Version</Theader>
-		  			<Theader>Latest Version</Theader>
-		  			{/*<Theader>Dependencies</Theader>*/}
-			  	</Trow>
-			  </thead>
-			  <tbody>
-		  		{
-		  		  comparisonData && Object.values(comparisonData).map((item, index) => {
-			  			return (
-			  			  <Trow key={ `tr_${index}` }>
-			  			  	<Tcell>{ Object.keys(comparisonData)[index] }</Tcell>
-			  			  	<Tcell $active={ item.pkgNewVer ? versionComparison(item.pkgCurrVer, item.pkgNewVer) : '' }>{ item.pkgCurrVer }</Tcell>
-			  			  	<Tcell>{ item.pkgNewVer ? item.pkgNewVer : <Loader></Loader> }</Tcell>
-			  			  	{/*<Tcell>
-			  			  		{
-			  			  			item.pkgDependencies && Object.keys(item.pkgDependencies).map((item2, index2) => {
-			  			  				return (
-			  			  					<span>{ item2 }</span>
-			  			  				)
-			  							})
-			  			  		}
-			  			  	</Tcell>*/}
-			  			  </Trow>
-			  			)
-		  		  })
-		  		}
-		  	</tbody>
-  	  </Table>
+  		<TableWrapper>
+	  	  <Table>
+	  	  	<thead>	
+	  	  		<Trow>
+			  			<Theader>Package Name</Theader>
+			  			<Theader>Current Version</Theader>
+			  			<Theader>Latest Version</Theader>
+			  			{/*<Theader>Dependencies</Theader>*/}
+				  	</Trow>
+				  </thead>
+				  <tbody>
+				  	{
+				  		trackerStatus ? (
+				  			<Trow>
+				  				<Tcell colSpan="3" $collapse={ trackerStatus }>Dependencies</Tcell>
+				  			</Trow>
+				  		) : (null)
+				  	}
+			  		{
+			  		  comparisonData && Object.values(comparisonData).map((item, index) => {
+				  			return (
+				  			  <Trow key={ `tr_${index}` }>
+				  			  	<Tcell>{ Object.keys(comparisonData)[index] }</Tcell>
+				  			  	<Tcell $active={ item.pkgNewVer ? versionComparison(item.pkgCurrVer, item.pkgNewVer) : '' }>{ item.pkgCurrVer }</Tcell>
+				  			  	<Tcell>{ item.pkgNewVer ? item.pkgNewVer : <Loader></Loader> }</Tcell>
+				  			  	{/*<Tcell>
+				  			  		{
+				  			  			item.pkgDependencies && Object.keys(item.pkgDependencies).map((item2, index2) => {
+				  			  				return (
+				  			  					<span>{ item2 }</span>
+				  			  				)
+				  							})
+				  			  		}
+				  			  	</Tcell>*/}
+				  			  </Trow>
+				  			)
+			  		  })
+			  		}
+			  		{
+				  		trackerStatus ? (
+				  			<Trow>
+				  				<Tcell colSpan="3" $collapse={ trackerStatus }>Dev Dependencies</Tcell>
+				  			</Trow>
+				  		) : (null)
+				  	}
+				  	{
+			  		  comparisonDataD && Object.values(comparisonDataD).map((item, index) => {
+				  			return (
+				  			  <Trow key={ `tr_${index}` }>
+				  			  	<Tcell>{ Object.keys(comparisonDataD)[index] }</Tcell>
+				  			  	<Tcell $active={ item.pkgNewVer ? versionComparison(item.pkgCurrVer, item.pkgNewVer) : '' }>{ item.pkgCurrVer }</Tcell>
+				  			  	<Tcell>{ item.pkgNewVer ? item.pkgNewVer : <Loader></Loader> }</Tcell>
+				  			  	{/*<Tcell>
+				  			  		{
+				  			  			item.pkgDependencies && Object.keys(item.pkgDependencies).map((item2, index2) => {
+				  			  				return (
+				  			  					<span>{ item2 }</span>
+				  			  				)
+				  							})
+				  			  		}
+				  			  	</Tcell>*/}
+				  			  </Trow>
+				  			)
+			  		  })
+			  		}
+			  	</tbody>
+	  	  </Table>
+	  	</TableWrapper>
   	  <Legends>
   			<LegendsItem>Latest Version</LegendsItem>
   			<LegendsItem>Patch Update</LegendsItem>

@@ -30,6 +30,9 @@ const GlobalStyle = createGlobalStyle`
     font-family: ${fonts.primary};
     background-color: ${colors.background};
     box-sizing: border-box;
+    line-height: 1.6;
+    font-size: 1rem;
+    color: ${colors.darkerGray};
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
